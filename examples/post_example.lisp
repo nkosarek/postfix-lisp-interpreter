@@ -23,7 +23,7 @@
 (1 2 ((x y)' ((z 5 def) (x y z +))' lambda))
 
 (x 10 def)
-(x 0 +)
+x
 
 5
 

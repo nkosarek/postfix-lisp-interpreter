@@ -116,31 +116,23 @@ def define_variable(scopes, *args):
 
 def define_lambda(scopes, *args):
     assert len(args) == 2
+    name = uuid.uuid4().hex
     params = args[0]
     body = list(args[1])
 
-    def func(lam_scopes, *lam_args):
-        assert len(params) == len(lam_args)
-        scope = FunctionScope(lam_scopes[0].variables)
-        for i in xrange(len(params)):
-            val = util.eval_var_if_possible(scopes, lam_args[i])
-            scope.add_variable(params[i], val)
-        lam_scopes.insert(0, scope)
-        result = util.eval_exprs(lam_scopes, body)
-        lam_scopes.pop(0)
-        return result
-
-    identifier = uuid.uuid4().hex
-    scopes[0].variables[identifier] = func
-    return identifier
+    return define_function_base(scopes, name, params, body)
 
 
 def define_function(scopes, *args):
     assert len(args) == 3
-    func_name = args[0]
+    name = args[0]
     params = args[1]
     body = list(args[2])
 
+    return define_function_base(scopes, name, params, body)
+
+
+def define_function_base(scopes, name, params, body):
     def func(lam_scopes, *lam_args):
         assert len(params) == len(lam_args)
         scope = FunctionScope(lam_scopes[0].variables)
@@ -154,8 +146,8 @@ def define_function(scopes, *args):
         lam_scopes.pop(0)
         return result
 
-    scopes[0].variables[func_name] = func
-    return func_name
+    scopes[0].variables[name] = func
+    return name
 
 
 def print_value(scopes, *args):

@@ -1,6 +1,5 @@
 import sys
 from func_defs import *
-from lisp_util import *
 
 # TODO:
 #   x Add variables
@@ -18,11 +17,15 @@ class Interpreter(object):
     def __init__(self, filename):
         self.scopes = [FunctionScope()]
         with open(filename, "r") as fp:
-            self.exprs = parse(fp, terminator="")
-            print self.exprs
+            self.exprs = util.parse(fp, terminator="")
 
     def eval(self):
-        eval_exprs(self.scopes, self.exprs)
+        for expr in self.exprs:
+            print "*", expr
+            if not isinstance(expr, util.LispList):
+                print "=>", util.eval_expr(self.scopes, expr)
+            else:
+                print "=>", expr
 
 
 if __name__ == "__main__":
