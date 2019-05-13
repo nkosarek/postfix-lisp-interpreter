@@ -3,8 +3,13 @@ class LispList(list):
         super(LispList, self).__init__(l)
 
 
+class LispString(str):
+    def __init__(self, s=""):
+        super(LispString, self).__init__(s)
+
+
 def is_not_primitive(value):
-    return not isinstance(value, (bool, int, long, list))
+    return not isinstance(value, (bool, int, long, list, LispString))
 
 
 def eval_var_if_possible(scopes, var):
@@ -23,16 +28,35 @@ def parse(fp, terminator=')'):
     exprs = []
     char = fp.read(1)
     atom = ""
-    while char != terminator:
+    in_string = False
+    while (char != terminator and not in_string) or in_string:
         # Reached EOF, but not supposed to yet
-        if char == "":
+        if char == "" and in_string:
+            raise Exception("Missing terminating \"")
+        # Reached EOF, but not supposed to yet
+        elif char == "":
             raise Exception("Missing terminating '%s'" % terminator)
+        # Complete current string atom
+        elif char == '"' and in_string:
+            in_string = False
+            exprs.append(atom)
+            atom = ""
+        # Add to current string atom
+        elif in_string:
+            atom += char
         # Found an invalid extra ')'
         elif char == ")":
             raise Exception("Extra ')' found at file location " + str(fp.tell()))
-        # Completed an atom with a space
+        # Start a string atom
+        elif char == '"' and not in_string:
+            in_string = True
+            if atom != "":
+                exprs.append(atom)
+            atom = ""
+        # Last atom was a plain list, not expression
         elif char == "'":
             exprs[len(exprs) - 1] = LispList(exprs[len(exprs) - 1])
+        # Completed an atom with a space
         elif char.isspace() and atom != "":
             if atom.isdigit():
                 atom = int(atom)
