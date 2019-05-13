@@ -17,6 +17,8 @@ class FunctionScope(object):
                 ">=": greater_than_or_equal,
                 "def": define_variable,
                 "lambda": define_lambda,
+                "if": if_condition,
+                "defun": define_function,
             }
         else:
             self.variables = dict(parent_vars)
@@ -140,6 +142,17 @@ def greater_than_or_equal(scopes, *args):
     return True
 
 
+def if_condition(scopes, *args):
+    for i in xrange(len(args)):
+        condition = args[i]
+        # else case
+        if i == len(args) - 1:
+            return condition[0]
+        # ifs
+        elif lisp_util.eval_expr(scopes, condition[0]):
+            return condition[1]
+
+
 def define_variable(scopes, *args):
     assert len(args) == 2
     variables = scopes[0].variables
@@ -171,3 +184,7 @@ def define_lambda(scopes, *args):
     identifier = uuid.uuid4().hex
     scopes[0].variables[identifier] = func
     return identifier
+
+
+def define_function(scopes, *args):
+    pass
