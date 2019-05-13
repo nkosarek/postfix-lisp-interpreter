@@ -1,0 +1,2 @@
+kTrue = 't'
+kNil = 'nil'
