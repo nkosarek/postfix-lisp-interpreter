@@ -3,6 +3,16 @@ class LispList(list):
         super(LispList, self).__init__(l)
 
 
+def is_not_primitive(value):
+    return not isinstance(value, (bool, int, long, list))
+
+
+def eval_var_if_possible(scopes, var):
+    if is_not_primitive(var) and var in scopes[0].variables:
+        return scopes[0].variables[var]
+    return var
+
+
 def parse(fp, terminator=')'):
     """
     Parses a lisp file into a list of expressions.
@@ -53,9 +63,9 @@ def eval_exprs(scopes, exprs):
     """
     for expr in exprs:
         if not isinstance(expr, LispList):
-            print "*", expr
+            # print "*", expr
             result = eval_expr(scopes, expr)
-            print "=>", result
+            # print "=>", result
     return result
 
 
@@ -67,6 +77,8 @@ def eval_expr(scopes, expr):
     :return: Result of evaluation
     """
     if not isinstance(expr, list):
+        if is_not_primitive(expr) and expr in scopes[0].variables:
+            expr = scopes[0].variables[expr]
         return expr
 
     args = []
@@ -78,6 +90,7 @@ def eval_expr(scopes, expr):
 
         if i == len(expr) - 1:
             curr_scope = scopes[0]
+            # print e, "(", args, ")"
             return curr_scope.variables[e](scopes, *args)
         else:
             args.append(e)

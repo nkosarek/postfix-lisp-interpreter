@@ -6,8 +6,8 @@ from lisp_util import *
 #   x Add variables
 #   x Add functions
 #       x Add lambda
-#   - Add if/else
-#   - Test recursive case
+#   x Add if/else
+#   x Test recursive case
 #   - Add parsing of strings
 #   - Add true/nil
 #   - Validate more than just parentheses in parse()
