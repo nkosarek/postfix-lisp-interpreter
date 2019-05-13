@@ -29,112 +29,69 @@ class FunctionScope(object):
 
 
 def add(scopes, *args):
-    variables = scopes[0].variables
-    val0 = args[0]
-    if util.is_not_primitive(val0) and val0 in variables:
-        val0 = variables[val0]
+    val0 = util.eval_var_if_possible(scopes, args[0])
     for val in args[1:]:
-        if util.is_not_primitive(val) and val in variables:
-            val = variables[val]
-        val0 += val
+        val0 += util.eval_var_if_possible(scopes, val)
     return val0
 
 
 def subtract(scopes, *args):
-    variables = scopes[0].variables
-    val0 = args[0]
-    if util.is_not_primitive(val0) and val0 in variables:
-        val0 = variables[val0]
+    val0 = util.eval_var_if_possible(scopes, args[0])
     for val in args[1:]:
-        if util.is_not_primitive(val) and val in variables:
-            val = variables[val]
-        val0 -= val
+        val0 -= util.eval_var_if_possible(scopes, val)
     return val0
 
 
 def multiply(scopes, *args):
-    variables = scopes[0].variables
     result = 1
     for val in args:
-        if util.is_not_primitive(val) and val in variables:
-            val = variables[val]
-        result *= val
+        result *= util.eval_var_if_possible(scopes, val)
     return result
 
 
 def divide(scopes, *args):
-    variables = scopes[0].variables
-    val0 = args[0]
-    if util.is_not_primitive(val0) and val0 in variables:
-        val0 = variables[val0]
+    val0 = util.eval_var_if_possible(scopes, args[0])
     for val in args[1:]:
-        if util.is_not_primitive(val) and val in variables:
-            val = variables[val]
-        val0 /= val
+        val0 /= util.eval_var_if_possible(scopes, val)
     return val0
 
 
 def equals(scopes, *args):
-    variables = scopes[0].variables
-    val0 = args[0]
-    if util.is_not_primitive(val0) and val0 in variables:
-        val0 = variables[val0]
+    val0 = util.eval_var_if_possible(scopes, args[0])
     for val in args[1:]:
-        if util.is_not_primitive(val) and val in variables:
-            val = variables[val]
-        if val0 != val:
+        if val0 != util.eval_var_if_possible(scopes, val):
             return False
     return True
 
 
 def less_than(scopes, *args):
-    variables = scopes[0].variables
-    val0 = args[0]
-    if util.is_not_primitive(val0) and val0 in variables:
-        val0 = variables[val0]
+    val0 = util.eval_var_if_possible(scopes, args[0])
     for val in args[1:]:
-        if util.is_not_primitive(val) and val in variables:
-            val = variables[val]
-        if val0 >= val:
+        if val0 >= util.eval_var_if_possible(scopes, val):
             return False
     return True
 
 
 def greater_than(scopes, *args):
-    variables = scopes[0].variables
-    val0 = args[0]
-    if util.is_not_primitive(val0) and val0 in variables:
-        val0 = variables[val0]
+    val0 = util.eval_var_if_possible(scopes, args[0])
     for val in args[1:]:
-        if util.is_not_primitive(val) and val in variables:
-            val = variables[val]
-        if val0 <= val:
+        if val0 <= util.eval_var_if_possible(scopes, val):
             return False
     return True
 
 
 def less_than_or_equal(scopes, *args):
-    variables = scopes[0].variables
-    val0 = args[0]
-    if util.is_not_primitive(val0) and val0 in variables:
-        val0 = variables[val0]
+    val0 = util.eval_var_if_possible(scopes, args[0])
     for val in args[1:]:
-        if util.is_not_primitive(val) and val in variables:
-            val = variables[val]
-        if val0 > val:
+        if val0 > util.eval_var_if_possible(scopes, val):
             return False
     return True
 
 
 def greater_than_or_equal(scopes, *args):
-    variables = scopes[0].variables
-    val0 = args[0]
-    if util.is_not_primitive(val0) and val0 in variables:
-        val0 = variables[val0]
+    val0 = util.eval_var_if_possible(scopes, args[0])
     for val in args[1:]:
-        if util.is_not_primitive(val) and val in variables:
-            val = variables[val]
-        if val0 < val:
+        if val0 < util.eval_var_if_possible(scopes, val):
             return False
     return True
 
@@ -152,11 +109,8 @@ def if_condition(scopes, *args):
 
 def define_variable(scopes, *args):
     assert len(args) == 2
-    variables = scopes[0].variables
-    val = args[1]
-    if util.is_not_primitive(val) and val in variables:
-        val = variables[val]
-    variables[args[0]] = val
+    val = util.eval_var_if_possible(scopes, args[1])
+    scopes[0].variables[args[0]] = val
     return val
 
 
@@ -169,9 +123,7 @@ def define_lambda(scopes, *args):
         assert len(params) == len(lam_args)
         scope = FunctionScope(lam_scopes[0].variables)
         for i in xrange(len(params)):
-            val = lam_args[i]
-            if util.is_not_primitive(val) and val in scope.variables:
-                val = scope.variables[val]
+            val = util.eval_var_if_possible(scopes, lam_args[i])
             scope.add_variable(params[i], val)
         lam_scopes.insert(0, scope)
         result = util.eval_exprs(lam_scopes, body)
@@ -193,9 +145,7 @@ def define_function(scopes, *args):
         assert len(params) == len(lam_args)
         scope = FunctionScope(lam_scopes[0].variables)
         for i in xrange(len(params)):
-            val = lam_args[i]
-            if util.is_not_primitive(val) and val in scope.variables:
-                val = scope.variables[val]
+            val = util.eval_var_if_possible(scopes, lam_args[i])
             scope.add_variable(params[i], val)
         # for key in scope.variables:
         #     print "{:>10}".format(key), ":", scope.variables[key]

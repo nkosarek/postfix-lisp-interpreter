@@ -77,9 +77,7 @@ def eval_expr(scopes, expr):
     :return: Result of evaluation
     """
     if not isinstance(expr, list):
-        if is_not_primitive(expr) and expr in scopes[0].variables:
-            expr = scopes[0].variables[expr]
-        return expr
+        return eval_var_if_possible(scopes, expr)
 
     args = []
     for i in xrange(len(expr)):
