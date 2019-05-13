@@ -2,16 +2,23 @@ import sys
 from funcs import *
 
 # TODO:
+#   x Add variables
+#   - Add functions
+#       - Add lambda
 #   - Add parsing of strings
-#   - Add more built-in functions
-#   - Add variables
 #   - Add true/nil
 #   - Validate more than just parentheses in parse()
-#   - Add functions
+#   - Add more built-in functions
+
+
+class LispList(list):
+    def __init__(self, l=None):
+        super(LispList, self).__init__(l)
 
 
 class Interpreter(object):
     def __init__(self, filename):
+        self.scopes = [FunctionScope()]
         with open(filename, "r") as fp:
             self.exprs = self.parse(fp, terminator="")
             print self.exprs
@@ -35,7 +42,11 @@ class Interpreter(object):
             elif char == ")":
                 raise Exception("Extra ')' found at file location " + str(fp.tell()))
             # Completed an atom with a space
+            elif char == "'":
+                exprs[len(exprs) - 1] = LispList(exprs[len(exprs) - 1])
             elif char.isspace() and atom != "":
+                if atom.isdigit():
+                    atom = int(atom)
                 exprs.append(atom)
                 atom = ""
             # Start nested list
@@ -48,25 +59,29 @@ class Interpreter(object):
             char = fp.read(1)
         # Last atom is adjacent to terminator
         if atom != "":
+            if atom.isdigit():
+                atom = int(atom)
             exprs.append(atom)
         return exprs
 
     def eval(self):
         for expr in self.exprs:
-            print Interpreter.eval_expr(expr)
+            if not isinstance(expr, LispList):
+                print self.eval_expr(expr)
 
-    @staticmethod
-    def eval_expr(expr):
+    def eval_expr(self, expr):
         args = []
-        for e in expr:
-            if isinstance(e, list):
-                args.append(Interpreter.eval_expr(e))
-            elif e in BuiltInFuncs:
-                return BuiltInFuncs[e](*args)
-            elif e.isdigit():
-                args.append(int(e))
+        for i in xrange(len(expr)):
+            e = expr[i]
+            if isinstance(e, LispList):
+                args.append(e)
+            elif isinstance(e, list):
+                args.append(self.eval_expr(e))
+            elif i == len(expr) - 1:
+                curr_scope = self.scopes[0]
+                return curr_scope.variables[e](curr_scope.variables, *args)
             else:
-                raise Exception("Unsupported atom: " + e)
+                args.append(e)
         return args
 
 
