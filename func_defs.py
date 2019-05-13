@@ -1,8 +1,36 @@
+import lisp_util
+import uuid
+
+
+class FunctionScope(object):
+    def __init__(self, parent_vars=None):
+        if parent_vars is None:
+            self.variables = {
+                "+": add,
+                "-": subtract,
+                "*": multiply,
+                "/": divide,
+                "=": equals,
+                "<": less_than,
+                ">": greater_than,
+                "<=": less_than_or_equal,
+                ">=": greater_than_or_equal,
+                "def": define_variable,
+                "lambda": define_lambda,
+            }
+        else:
+            self.variables = dict(parent_vars)
+
+    def add_variable(self, identifier, val):
+        self.variables[identifier] = val
+
+
 def is_not_primitive(value):
     return not isinstance(value, (bool, int, long, list))
 
 
-def add(variables, *args):
+def add(scopes, *args):
+    variables = scopes[0].variables
     val0 = args[0]
     if is_not_primitive(val0) and val0 in variables:
         val0 = variables[val0]
@@ -13,7 +41,8 @@ def add(variables, *args):
     return val0
 
 
-def subtract(variables, *args):
+def subtract(scopes, *args):
+    variables = scopes[0].variables
     val0 = args[0]
     if is_not_primitive(val0) and val0 in variables:
         val0 = variables[val0]
@@ -24,7 +53,8 @@ def subtract(variables, *args):
     return val0
 
 
-def multiply(variables, *args):
+def multiply(scopes, *args):
+    variables = scopes[0].variables
     result = 1
     for val in args:
         if is_not_primitive(val) and val in variables:
@@ -33,7 +63,8 @@ def multiply(variables, *args):
     return result
 
 
-def divide(variables, *args):
+def divide(scopes, *args):
+    variables = scopes[0].variables
     val0 = args[0]
     if is_not_primitive(val0) and val0 in variables:
         val0 = variables[val0]
@@ -44,7 +75,8 @@ def divide(variables, *args):
     return val0
 
 
-def equals(variables, *args):
+def equals(scopes, *args):
+    variables = scopes[0].variables
     val0 = args[0]
     if is_not_primitive(val0) and val0 in variables:
         val0 = variables[val0]
@@ -56,7 +88,8 @@ def equals(variables, *args):
     return True
 
 
-def less_than(variables, *args):
+def less_than(scopes, *args):
+    variables = scopes[0].variables
     val0 = args[0]
     if is_not_primitive(val0) and val0 in variables:
         val0 = variables[val0]
@@ -68,7 +101,8 @@ def less_than(variables, *args):
     return True
 
 
-def greater_than(variables, *args):
+def greater_than(scopes, *args):
+    variables = scopes[0].variables
     val0 = args[0]
     if is_not_primitive(val0) and val0 in variables:
         val0 = variables[val0]
@@ -80,7 +114,8 @@ def greater_than(variables, *args):
     return True
 
 
-def less_than_or_equal(variables, *args):
+def less_than_or_equal(scopes, *args):
+    variables = scopes[0].variables
     val0 = args[0]
     if is_not_primitive(val0) and val0 in variables:
         val0 = variables[val0]
@@ -92,7 +127,8 @@ def less_than_or_equal(variables, *args):
     return True
 
 
-def greater_than_or_equal(variables, *args):
+def greater_than_or_equal(scopes, *args):
+    variables = scopes[0].variables
     val0 = args[0]
     if is_not_primitive(val0) and val0 in variables:
         val0 = variables[val0]
@@ -104,7 +140,34 @@ def greater_than_or_equal(variables, *args):
     return True
 
 
-def define_variable(variables, *args):
+def define_variable(scopes, *args):
     assert len(args) == 2
-    variables[args[0]] = args[1]
-    return args[1]
+    variables = scopes[0].variables
+    val = args[1]
+    if is_not_primitive(val) and val in variables:
+        val = variables[val]
+    variables[args[0]] = val
+    return val
+
+
+def define_lambda(scopes, *args):
+    assert len(args) == 2
+    params = args[0]
+    body = list(args[1])
+
+    def func(lam_scopes, *lam_args):
+        assert len(params) == len(lam_args)
+        scope = FunctionScope(lam_scopes[0].variables)
+        for i in xrange(len(params)):
+            val = lam_args[i]
+            if is_not_primitive(val) and val in scope.variables:
+                val = scope.variables[val]
+            scope.add_variable(params[i], val)
+        lam_scopes.insert(0, scope)
+        result = lisp_util.eval_exprs(lam_scopes, body)
+        lam_scopes.pop(0)
+        return result
+
+    identifier = uuid.uuid4().hex
+    scopes[0].variables[identifier] = func
+    return identifier

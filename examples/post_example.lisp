@@ -15,3 +15,16 @@
 
 (a 3 def)
 (a 1 +)
+
+(f ((x y)' ((x y +))' lambda) def)
+(4 5 f)
+
+(1 2 ((x y)' ((x y +))' lambda))
+(1 2 ((x y)' ((z 5 def) (x y z +))' lambda))
+
+(x 10 def)
+(x 0 +)
+
+5
+
+(((1 3 >) 5)' ((1 2 >) 6)' (5 else)' if)
